@@ -1,0 +1,66 @@
+{
+  "format": "suture.workbook",
+  "version": 1,
+  "title": "Wholesale Quote Margin (Suture Crew sample)",
+  "workbook": {
+    "sheets": [
+      {
+        "name": "Inputs",
+        "cells": [
+          { "key": "Inputs!A1", "raw": "Driver" },
+          { "key": "Inputs!B1", "raw": "Value" },
+          { "key": "Inputs!A2", "raw": "List price" },
+          { "key": "Inputs!B2", "raw": "120" },
+          { "key": "Inputs!A3", "raw": "Volume discount" },
+          { "key": "Inputs!B3", "raw": "0.10" },
+          { "key": "Inputs!A4", "raw": "Promo discount" },
+          { "key": "Inputs!B4", "raw": "0.05" },
+          { "key": "Inputs!A5", "raw": "Loyalty discount" },
+          { "key": "Inputs!B5", "raw": "0.05" },
+          { "key": "Inputs!A6", "raw": "Unit cost" },
+          { "key": "Inputs!B6", "raw": "30" }
+        ]
+      },
+      {
+        "name": "Pricing",
+        "cells": [
+          { "key": "Pricing!A1", "raw": "=SQL(\"SELECT {{Inputs!B2}}::DOUBLE * (1 - ({{Inputs!B3}}::DOUBLE + {{Inputs!B4}}::DOUBLE + {{Inputs!B5}}::DOUBLE)) AS net_price\")" }
+        ]
+      },
+      {
+        "name": "Quote",
+        "cells": [
+          { "key": "Quote!A2", "raw": "Net unit price" },
+          { "key": "Quote!B2", "raw": "=Pricing!A1" },
+          { "key": "Quote!A3", "raw": "Unit cost" },
+          { "key": "Quote!B3", "raw": "=Inputs!B6" },
+          { "key": "Quote!A4", "raw": "Gross margin %" },
+          { "key": "Quote!B4", "raw": "=(B2-B3)/B2" },
+          { "key": "Quote!A5", "raw": "Quote status" },
+          { "key": "Quote!B5", "raw": "=IF(B4<0.2,\"ESCALATE\",\"APPROVE\")" }
+        ]
+      }
+    ],
+    "names": [],
+    "datasets": [],
+    "seed": 2026
+  },
+  "exorcist": {
+    "numRuns": 1000,
+    "batchSize": 200,
+    "maxBatches": 10,
+    "maxShrinkRounds": 64,
+    "inputs": [
+      { "cell": "Inputs!B2", "domain": { "kind": "float", "min": 40, "max": 400 } },
+      { "cell": "Inputs!B3", "domain": { "kind": "float", "min": 0, "max": 0.4 } },
+      { "cell": "Inputs!B4", "domain": { "kind": "float", "min": 0, "max": 0.4 } },
+      { "cell": "Inputs!B5", "domain": { "kind": "float", "min": 0, "max": 0.3 } },
+      { "cell": "Inputs!B6", "domain": { "kind": "float", "min": 10, "max": 35 } }
+    ],
+    "assertions": [
+      { "id": "net-price-positive", "cell": "Quote!B2", "kind": "gt", "operand": { "kind": "const", "value": 0 } },
+      { "id": "margin-at-most-100pct", "cell": "Quote!B4", "kind": "lte", "operand": { "kind": "const", "value": 1 } },
+      { "id": "margin-defined", "cell": "Quote!B4", "kind": "notError" }
+    ]
+  }
+}

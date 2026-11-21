@@ -1,0 +1,81 @@
+{
+  "name": "suture-crew",
+  "version": "1.0.0",
+  "displayName": "Suture Crew",
+  "description": "Always-on audits for Suture spreadsheet models: three agents map .suture.json lineage, run property-based Exorcist audits, and verify non-masking formula patches with zero regressions, with one-click Suture X-Ray replay links for human sign-off.",
+  "author": "g4stein",
+  "license": "MIT",
+  "minKiroCrewVersion": "0.13.0",
+  "iconPath": "assets/icon.png",
+  "tags": ["spreadsheets", "financial-models", "audit", "property-based-testing", "mcp", "suture"],
+  "highlights": [
+    "Schema Archaeologist maps every sheet and the SQL → Python → formula lineage of your .suture.json models",
+    "Invariant Adversary runs Suture's Exorcist fuzzer and turns each shrunk counterexample into a Suture X-Ray replay link",
+    "Formula Surgeon proposes the upstream, non-masking fix and proves it with suture_verify_patch before suggesting a diff",
+    "A paused nightly-model-audit schedule you switch on once your workspace is set",
+    "A bundled sample workbook with a real discount-stacking bug, so the first audit works right after install",
+    "Reports land in a local ledger the Suture Crew dashboard reads; nothing leaves your machine"
+  ],
+  "useCases": [
+    "Before a board meeting, ask Invariant Adversary to audit the runway model and open the counterexample in Suture X-Ray",
+    "When an audit fails, ask Formula Surgeon for a fix that changes the upstream SQL instead of hiding the error, with 0 regressions proven",
+    "Turn on nightly-model-audit so every .suture.json in the workspace is fuzzed overnight and the dashboard shows what broke"
+  ],
+  "agents": [
+    "agents/schema-archaeologist.json",
+    "agents/invariant-adversary.json",
+    "agents/formula-surgeon.json"
+  ],
+  "skills": [
+    "skills/suture-audit-playbook",
+    "skills/suture-replay-triage"
+  ],
+  "mcpServers": {
+    "suture": {
+      "command": "npx",
+      "args": ["-y", "@suture/mcp@0.1.0"],
+      "autoApprove": ["suture_list_workbooks", "suture_inspect_lineage"]
+    },
+    "ledger": {
+      "command": "python3",
+      "args": ["backend/ledger_mcp.py"],
+      "autoApprove": ["suture_crew_record_audit"]
+    }
+  },
+  "crons": [
+    {
+      "name": "nightly-model-audit",
+      "cron_expr": "0 2 * * *",
+      "agent": "invariant-adversary",
+      "message": "Nightly model audit. Call suture_list_workbooks on the workspace server (@suture-crew:suture) and record the result. Then run suture_run_audit on every .suture.json file it lists, with trustPython left unset, and record every report with suture_crew_record_audit (source 'workspace'). If the workspace lists no .suture.json files, audit the bundled sample on @suture-sample instead (source 'sample'). Finish with a short table: workbook, verdict, violated assertion, X-Ray link.",
+      "enabled": false
+    }
+  ],
+  "backend": {
+    "hooks": {
+      "routes": "backend.routes:register_routes"
+    }
+  },
+  "ui": {
+    "entry": "dist/index.mjs",
+    "pages": [
+      {
+        "route": "/apps/suture-crew",
+        "label": "Suture Crew",
+        "icon": "ShieldCheck"
+      }
+    ]
+  },
+  "permissions": {
+    "api": ["/api/crons", "/api/apps/suture-crew"],
+    "cron": true,
+    "storage": false,
+    "network": false
+  },
+  "dependencies": {
+    "commands": ["node", "npx", "python3"]
+  },
+  "platform": {
+    "os": ["macos", "linux"]
+  }
+}

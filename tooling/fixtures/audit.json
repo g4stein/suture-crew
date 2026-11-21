@@ -1,0 +1,258 @@
+{
+  "format": "suture.audit",
+  "version": 1,
+  "workbook": {
+    "ref": "wholesale-quote.suture.json",
+    "title": "Wholesale Quote Margin (Suture Crew sample)",
+    "hash": "sha256:0941e701e46c85925a375911023405826f63f11ce8fd419376f39561f3163b3b",
+    "python": "none"
+  },
+  "seed": -48318445,
+  "mode": "batched",
+  "verdict": "violated",
+  "message": null,
+  "search": {
+    "runs": 60,
+    "shrinkSteps": 20,
+    "scenarios": null
+  },
+  "tier1": [
+    {
+      "id": "T1.noUnhandledException",
+      "label": "no kernel throws",
+      "status": "held"
+    },
+    {
+      "id": "T1.noNonFiniteLeak",
+      "label": "no NaN or ±Infinity reaches a cell",
+      "status": "held"
+    },
+    {
+      "id": "T1.strictErrorPropagation",
+      "label": "errors propagate strictly from their origin",
+      "status": "held"
+    },
+    {
+      "id": "T1.editOrderDeterminism",
+      "label": "results do not depend on edit order",
+      "status": "held"
+    },
+    {
+      "id": "T1.crossEngineTolerance",
+      "label": "SQL and NumPy agree within 1e-9 (batched)",
+      "status": "held"
+    }
+  ],
+  "tier2": [
+    {
+      "id": "net-price-positive",
+      "cell": "Quote!B2",
+      "rule": "> 0",
+      "status": "violated"
+    },
+    {
+      "id": "margin-at-most-100pct",
+      "cell": "Quote!B4",
+      "rule": "≤ 1",
+      "status": "not reached"
+    },
+    {
+      "id": "margin-defined",
+      "cell": "Quote!B4",
+      "rule": "not error",
+      "status": "not reached"
+    }
+  ],
+  "violation": {
+    "tier": 2,
+    "id": "net-price-positive",
+    "cell": "Quote!B2",
+    "rule": "> 0",
+    "detail": "Quote!B2 = 0 violates gt 0",
+    "observed": 0
+  },
+  "failingInputs": [
+    {
+      "cell": "Inputs!B2",
+      "value": 40
+    },
+    {
+      "cell": "Inputs!B3",
+      "value": 0.4
+    },
+    {
+      "cell": "Inputs!B4",
+      "value": 0.4
+    },
+    {
+      "cell": "Inputs!B5",
+      "value": 0.2
+    },
+    {
+      "cell": "Inputs!B6",
+      "value": 10
+    }
+  ],
+  "lineage": [
+    {
+      "cell": "Inputs!B2",
+      "dialect": "literal",
+      "value": 40,
+      "base": 120
+    },
+    {
+      "cell": "Inputs!B3",
+      "dialect": "literal",
+      "value": 0.4,
+      "base": 0.1
+    },
+    {
+      "cell": "Inputs!B4",
+      "dialect": "literal",
+      "value": 0.4,
+      "base": 0.05
+    },
+    {
+      "cell": "Inputs!B5",
+      "dialect": "literal",
+      "value": 0.2,
+      "base": 0.05
+    },
+    {
+      "cell": "Inputs!B6",
+      "dialect": "literal",
+      "value": 10,
+      "base": 30
+    },
+    {
+      "cell": "Pricing!A1",
+      "dialect": "sql",
+      "value": 0,
+      "base": 96
+    },
+    {
+      "cell": "Quote!B2",
+      "dialect": "formula",
+      "value": 0,
+      "base": 96
+    }
+  ],
+  "failingEdge": {
+    "from": "Pricing!A1",
+    "to": "Quote!B2"
+  },
+  "replay": {
+    "artifact": {
+      "format": "suture.replay",
+      "version": 1,
+      "mode": "batched",
+      "seed": -48318445,
+      "path": "59:0:4:1:2:1:1:0:0:0:0:0:0:0:2:2:0:0:1:0:65|0,1,1,1,0",
+      "numRuns": 2000,
+      "batchSize": 200,
+      "failingInputs": [
+        {
+          "cell": "Inputs!B2",
+          "value": {
+            "t": "n",
+            "v": "40"
+          }
+        },
+        {
+          "cell": "Inputs!B3",
+          "value": {
+            "t": "n",
+            "v": "0.4"
+          }
+        },
+        {
+          "cell": "Inputs!B4",
+          "value": {
+            "t": "n",
+            "v": "0.4"
+          }
+        },
+        {
+          "cell": "Inputs!B5",
+          "value": {
+            "t": "n",
+            "v": "0.2"
+          }
+        },
+        {
+          "cell": "Inputs!B6",
+          "value": {
+            "t": "n",
+            "v": "10"
+          }
+        }
+      ],
+      "violatedAssertion": {
+        "tier": 2,
+        "assertion": {
+          "id": "net-price-positive",
+          "cell": "Quote!B2",
+          "kind": "gt",
+          "operand": {
+            "kind": "const",
+            "value": 0
+          }
+        },
+        "observed": {
+          "kind": "scalar",
+          "value": {
+            "t": "n",
+            "v": "0"
+          }
+        },
+        "paired": null,
+        "detail": "Quote!B2 = 0 violates gt 0"
+      },
+      "lineagePath": {
+        "cells": [
+          "Inputs!B2",
+          "Inputs!B3",
+          "Inputs!B4",
+          "Inputs!B5",
+          "Inputs!B6",
+          "Pricing!A1",
+          "Quote!B2"
+        ],
+        "edges": [
+          {
+            "from": "Inputs!B2",
+            "to": "Pricing!A1"
+          },
+          {
+            "from": "Inputs!B3",
+            "to": "Pricing!A1"
+          },
+          {
+            "from": "Inputs!B4",
+            "to": "Pricing!A1"
+          },
+          {
+            "from": "Inputs!B5",
+            "to": "Pricing!A1"
+          },
+          {
+            "from": "Pricing!A1",
+            "to": "Quote!B2"
+          }
+        ],
+        "failingEdge": {
+          "from": "Pricing!A1",
+          "to": "Quote!B2"
+        }
+      },
+      "workbookHash": "sha256:0941e701e46c85925a375911023405826f63f11ce8fd419376f39561f3163b3b",
+      "sutureVersion": "0.1.0",
+      "fastCheckVersion": "4.10.3",
+      "createdAt": "2026-11-21T20:54:19.143Z"
+    },
+    "fragment": "replay=v1.lVPLbtswEPwVZ8-0wKdsEeghLQq0t_SBHhrkQEsrmbAsCiTlonX97wVlJ5HTuHDBg8DVzJIzO9zDysRy_cX-QtCcUgKlRxOxuo2ggVOezxmbc_aVU62kZkXGpPgOBGpjW9s1H7t-iAH0_R5KbFvQcKzcvOVAYGfaAUHvITXrUgE0SAqHA_kLLy7haSZfJcj_JajLBP4qIb9EYEnCQzIhxHdrLDff0AfruqQuYzRLWmrntyaRwhAHj5nHvjU_gUBrOzQN3pm4Tn3TmcnAM-Ompkz1TqVMb3nnbWm75uaWAYFPg4uY-jwQwKrB43hq77YvxhMd6Ck1WfACJq6Dyetg6t-wMxUj7knK0e0xcu-rZhzIFaQDga2rEPQx5VgBgW7Yfh66MKadEujHMYAqNNVSM80100zTs8U1H7-pnqvflLBxUSAQECvQc7kUbCmlIqdpP-eBZixLwN1jhRHYWdeObywE9HGs7sFMN6cgPikhYKuUP4zz3tsS570LNtodAoGN7dK_JgIB16M3abt_LJeuC_E5xzR5UmE0dtp_9mZGZ6dbhVkTZ-nGbhXQ73DaLJSmNf7iMxoN7431idQNbUsgWvSg-YHAD-c3K-c2H0xIhoe14SrXtJAMF5ShzMulKrgyYqEKxigXkqolz-tc1IyVuKwryQqxyGtRqJzVguViJVZw-AM"
+  },
+  "meta": {
+    "durationMs": 1818
+  }
+}

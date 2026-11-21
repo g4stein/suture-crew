@@ -1,0 +1,9 @@
+# Single-package workspace file, used only for pnpm settings.
+# License policy (.kiro/steering/suture-crew-architecture.md): no GPL/LGPL/AGPL, nothing unlicensed. Vite 8 depends on
+# lightningcss (MPL-2.0), so the tooling stays on Vite 7, and optional peers are never installed implicitly.
+packages:
+  - .
+autoInstallPeers: false
+# esbuild (MIT) verifies its platform binary in a postinstall script.
+allowBuilds:
+  esbuild: true

@@ -1,0 +1,33 @@
+{
+  "name": "suture-crew-tooling",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "description": "Build, test and audit tooling for the Suture Crew Kiro Crew App. Lives outside the app root so a registry install never runs npm.",
+  "packageManager": "pnpm@12.21.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build:ui": "vite build",
+    "icon": "node scripts/gen-icon.mjs",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest --run",
+    "test:py": "python3 -m pytest -q pytests",
+    "licenses": "node scripts/license-audit.mjs",
+    "trademarks": "node scripts/trademark-scan.mjs",
+    "check": "vitest --run test/manifest.test.ts test/bundle.test.ts test/hygiene.test.ts",
+    "prove": "node scripts/prove-sample.mjs",
+    "verify": "pnpm run typecheck && pnpm run build:ui && pnpm run test && pnpm run test:py && pnpm run licenses && pnpm run trademarks"
+  },
+  "devDependencies": {
+    "@types/node": "22.20.5",
+    "@types/react": "18.3.31",
+    "@types/react-dom": "18.3.7",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "typescript": "7.0.2",
+    "vite": "7.3.8",
+    "vitest": "4.1.12"
+  }
+}

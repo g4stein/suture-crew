@@ -1,0 +1,70 @@
+{
+  "format": "suture.workbooks",
+  "version": 1,
+  "sutureVersion": "0.1.0",
+  "root": "/projects/sandbox/suture-crew/samples",
+  "flagships": [
+    {
+      "id": "flagship:1",
+      "title": "SaaS Cash Runway & Unit Economics",
+      "summary": "Cash runway: DuckDB cohort trajectory, NumPy OLS burn projection, formula runway and status.",
+      "hash": "sha256:37651a2f52d8fc3d64ff5904215f856f76f734e980fb7cb1181e0862d88b00d3",
+      "sheets": [
+        "Inputs",
+        "Cohorts",
+        "Model"
+      ],
+      "cells": 40,
+      "inputs": 8,
+      "assertions": [
+        "runway-non-negative",
+        "runway-defined",
+        "runway-finite"
+      ],
+      "python": "trusted"
+    },
+    {
+      "id": "flagship:2",
+      "title": "100,000-Row E-Commerce Margin Audit",
+      "summary": "100,000 synthetic orders in DuckDB, NumPy pivots, formula margins across five sheets.",
+      "hash": "sha256:0d703b2a5d3bcb2c02709716c79d2c4d648ad1e3e223e7b3f64ae7a1f9b2630b",
+      "sheets": [
+        "Params",
+        "Orders",
+        "Segments",
+        "Cohorts",
+        "Model",
+        "Margins"
+      ],
+      "cells": 90,
+      "inputs": 4,
+      "assertions": [
+        "hardlines-stacked-net-margin",
+        "total-margin-not-null",
+        "model-projection-finite"
+      ],
+      "python": "trusted"
+    }
+  ],
+  "files": [
+    {
+      "path": "wholesale-quote.suture.json",
+      "title": "Wholesale Quote Margin (Suture Crew sample)",
+      "hash": "sha256:0941e701e46c85925a375911023405826f63f11ce8fd419376f39561f3163b3b",
+      "sheets": [
+        "Inputs",
+        "Pricing",
+        "Quote"
+      ],
+      "cells": 21,
+      "inputs": 5,
+      "assertions": [
+        "net-price-positive",
+        "margin-at-most-100pct",
+        "margin-defined"
+      ],
+      "python": "none",
+      "pyCells": 0
+    }
+  ]
+}

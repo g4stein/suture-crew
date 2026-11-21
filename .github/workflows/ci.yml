@@ -1,0 +1,93 @@
+name: CI
+
+on:
+  push:
+    branches: [main, "feat/**"]
+  pull_request:
+
+permissions:
+  contents: read
+
+env:
+  # Pinned upstreams the integration jobs verify against.
+  KIROCREW_SHA: 44b184c9f9174d93b90ce8453785d13b2fa00b30
+  SUTURE_SHA: 5eccda08e549cdcd8fe0698b270ec0de5c962efc
+
+jobs:
+  verify:
+    name: Manifest, icon, bundle, tests, licenses, trademarks
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: tooling
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: corepack enable
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run typecheck
+      - name: Rebuild the UI and require the committed bundle to match
+        run: |
+          pnpm run build:ui
+          git diff --exit-code -- ../ui/dist
+      - run: pnpm test
+      - run: python -m pip install -r requirements-dev.txt
+      - run: python -m pytest -q pytests
+      - name: License audit (npm and pip)
+        run: |
+          pnpm run licenses
+          python scripts/py_license_audit.py
+      - run: pnpm run trademarks
+      - name: .kiro/ is tracked and not ignored
+        run: |
+          test -z "$(git check-ignore ../.kiro/steering/suture-crew-architecture.md ../.kiro/hooks/crew-app-guard.json || true)"
+          git ls-files --error-unmatch ../.kiro/steering/suture-crew-architecture.md ../.kiro/specs/01-suture-crew-app/tasks.md ../.kiro/hooks/crew-app-guard.json
+
+  crew-integration:
+    name: Install with Kiro Crew's own installer and registrar
+    runs-on: ubuntu-latest
+    steps:
+      # Side-by-side checkouts, so the app copy Crew makes does not include the gateway source.
+      - uses: actions/checkout@v4
+        with:
+          path: app
+      - uses: actions/checkout@v4
+        with:
+          repository: kirodotdev/KiroCrew
+          ref: ${{ env.KIROCREW_SHA }}
+          path: KiroCrew
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install -e KiroCrew
+      - run: app/tooling/crew-check/run.sh python
+
+  suture-e2e:
+    name: End-to-end proof against the real Suture MCP server
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: g4stein/SUTURE
+          ref: ${{ env.SUTURE_SHA }}
+          path: .ci/SUTURE
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: corepack enable
+      - name: Build suture-mcp
+        working-directory: .ci/SUTURE
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm --filter "@suture/mcp..." build
+      - name: Audit the sample, verify the fix, record the reports
+        run: SUTURE_MCP_ENTRY="$GITHUB_WORKSPACE/.ci/SUTURE/packages/mcp/dist/suture-mcp.mjs" node tooling/scripts/prove-sample.mjs
