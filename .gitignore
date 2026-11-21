@@ -1,0 +1,8 @@
+# Dependencies and caches. Never list .kiro/ here: steering, specs and hooks are tracked on purpose.
+node_modules/
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+# The ledger the app writes at runtime (inside an installed copy).
+/data/

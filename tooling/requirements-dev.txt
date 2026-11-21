@@ -1,0 +1,5 @@
+# Test-only Python dependencies for backend/ (pytest). The app itself needs none: ledger_mcp.py is stdlib-only and
+# routes.py uses the aiohttp the Kiro Crew gateway already runs. Kept under tooling/ so a registry install of the app
+# never pip-installs it (Kiro Crew builds only from a root requirements.txt / pyproject.toml).
+pytest==9.2.0
+aiohttp==3.14.5

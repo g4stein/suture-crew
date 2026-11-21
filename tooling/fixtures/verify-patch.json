@@ -1,0 +1,68 @@
+{
+  "format": "suture.verify-patch",
+  "version": 1,
+  "seed": -48318445,
+  "workbook": {
+    "ref": "wholesale-quote.suture.json",
+    "title": "Wholesale Quote Margin (Suture Crew sample)",
+    "hash": "sha256:0941e701e46c85925a375911023405826f63f11ce8fd419376f39561f3163b3b",
+    "python": "none"
+  },
+  "patchedHash": "sha256:384b96407c947ef1e3c2cf6063efa6a85fc5f7a18abf2c1f9e606dbc5019fb4a",
+  "patches": [
+    {
+      "cell": "Pricing!A1",
+      "before": "=SQL(\"SELECT {{Inputs!B2}}::DOUBLE * (1 - ({{Inputs!B3}}::DOUBLE + {{Inputs!B4}}::DOUBLE + {{Inputs!B5}}::DOUBLE)) AS net_price\")",
+      "after": "=SQL(\"SELECT {{Inputs!B2}}::DOUBLE * (1 - {{Inputs!B3}}::DOUBLE) * (1 - {{Inputs!B4}}::DOUBLE) * (1 - {{Inputs!B5}}::DOUBLE) AS net_price\")"
+    }
+  ],
+  "ok": true,
+  "patchErrors": [],
+  "original": {
+    "source": "artifact",
+    "violation": {
+      "tier": 2,
+      "id": "net-price-positive",
+      "cell": "Quote!B2",
+      "rule": "> 0",
+      "detail": "Quote!B2 = 0 violates gt 0",
+      "observed": 0
+    }
+  },
+  "counterexampleFixed": true,
+  "counterexampleStillFails": null,
+  "freshAuditPassed": true,
+  "freshAudit": {
+    "mode": "batched",
+    "verdict": "passed",
+    "message": null,
+    "search": {
+      "runs": 2000,
+      "scenarios": 2000,
+      "shrinkSteps": null
+    },
+    "violation": null,
+    "failingInputs": []
+  },
+  "regressions": [],
+  "baseValueDiffs": [
+    {
+      "cell": "Pricing!A1",
+      "before": 96,
+      "after": 97.46999999999998
+    },
+    {
+      "cell": "Quote!B2",
+      "before": 96,
+      "after": 97.46999999999998
+    },
+    {
+      "cell": "Quote!B4",
+      "before": 0.6875,
+      "after": 0.6922129886118805
+    }
+  ],
+  "meta": {
+    "durationMs": 1419
+  }
+}

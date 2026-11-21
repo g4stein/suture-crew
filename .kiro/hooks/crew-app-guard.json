@@ -1,0 +1,20 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "Crew app guard",
+      "description": "After a manifest, agent, skill, UI or backend file is saved, rebuild the UI bundle and re-run the Kiro Crew manifest rules, the bundle-externals check, the trademark scan and the license policy.",
+      "trigger": "PostFileSave",
+      "matcher": "(^|/)(app\\.json|agents/.+\\.json|skills/.+\\.md|ui/src/.+\\.tsx?|backend/.+\\.py|assets/.+\\.png)$",
+      "action": { "type": "command", "command": "pnpm -C tooling run build:ui && pnpm -C tooling run check" },
+      "timeout": 180
+    },
+    {
+      "name": "License and trademark gate before the turn ends",
+      "description": "When the agent finishes a turn, re-run the dependency license audit and the digest-based trademark scan over every file a commit could contain.",
+      "trigger": "Stop",
+      "action": { "type": "command", "command": "pnpm -C tooling run licenses && pnpm -C tooling run trademarks" },
+      "timeout": 120
+    }
+  ]
+}
