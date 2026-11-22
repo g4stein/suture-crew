@@ -11,7 +11,7 @@ permissions:
 env:
   # Pinned upstreams the integration jobs verify against.
   KIROCREW_SHA: 44b184c9f9174d93b90ce8453785d13b2fa00b30
-  SUTURE_SHA: 5eccda08e549cdcd8fe0698b270ec0de5c962efc
+  SUTURE_SHA: 2aa3cc78d346aa567a60487100f661fa70f070b3
 
 jobs:
   verify:
@@ -67,8 +67,24 @@ jobs:
       - run: python -m pip install -e KiroCrew
       - run: app/tooling/crew-check/run.sh python
 
+  suture-e2e-npm:
+    name: End-to-end proof against the published @g4stein/suture-mcp
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: The pinned package resolves from npm
+        run: npm view @g4stein/suture-mcp@0.1.0 name version license
+      - name: Audit the sample, verify the fix, record the reports (npx, as the app launches it)
+        run: node tooling/scripts/prove-sample.mjs
+
   suture-e2e:
-    name: End-to-end proof against the real Suture MCP server
+    name: End-to-end proof against a local Suture build (offline fallback)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -88,6 +104,6 @@ jobs:
         working-directory: .ci/SUTURE
         run: |
           pnpm install --frozen-lockfile
-          pnpm --filter "@suture/mcp..." build
+          pnpm --filter "@g4stein/suture-mcp..." build
       - name: Audit the sample, verify the fix, record the reports
         run: SUTURE_MCP_ENTRY="$GITHUB_WORKSPACE/.ci/SUTURE/packages/mcp/dist/suture-mcp.mjs" node tooling/scripts/prove-sample.mjs

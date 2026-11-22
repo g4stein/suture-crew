@@ -67,8 +67,12 @@ against KiroCrew `44b184c` (Kiro Crew 0.14.0) and SUTURE `5eccda0`; CI re-runs e
     `tooling/test/use-local-suture.test.ts`), workspace and cron setup, architecture.
   - Evidence: GitHub Actions run on the PR branch (linked in PR #1).
 
+- [x] **11. Switch to the published engine** (Req 2.1, 8.4)
+  - `node tooling/scripts/use-local-suture.mjs --npm @g4stein/suture-mcp@0.1.0` rewrote `app.json` and the three agents;
+    README, steering and spec updated; the local-path script stays documented as the offline fallback.
+  - Evidence: `npm view @g4stein/suture-mcp@0.1.0` (MIT, bin `suture-mcp`); `prove-sample.mjs` with no
+    `SUTURE_MCP_ENTRY` (launches `npx -y @g4stein/suture-mcp@0.1.0`) passes locally and in the CI `suture-e2e-npm` job.
+
 ## Open items
 
-- `@suture/mcp@0.1.0` must be published from `g4stein/SUTURE` before the default `npx` launcher works on a machine
-  without the local fallback (README, "The Suture engine").
 - The dashboard page has been rendered under test but not yet clicked through in a running Kiro Crew dashboard.

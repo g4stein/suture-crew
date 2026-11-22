@@ -1,5 +1,7 @@
 # Suture Crew
 
+[![CI](https://github.com/g4stein/suture-crew/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/g4stein/suture-crew/actions/workflows/ci.yml)
+
 Always-on audits for spreadsheet models, as a [Kiro Crew](https://github.com/kirodotdev/KiroCrew) App.
 
 [Suture](https://github.com/g4stein/SUTURE) ([live app](https://suture-nu.vercel.app)) catches silent bugs in
@@ -27,30 +29,19 @@ Installing from a git URL needs Kiro Crew 0.13.0 or later. The app installs disa
 (or **Enable** in Apps → Library) shows the trust prompt. Requirements on the gateway host: `node` and `npx` (Node 22+)
 and `python3`.
 
-### The Suture engine: `@suture/mcp@0.1.0`
+### The Suture engine: `@g4stein/suture-mcp@0.1.0`
 
-The app launches Suture's MCP server with `npx -y @suture/mcp@0.1.0` (`app.json` → `mcpServers.suture`, and the
-`suture-sample` server in each agent file).
+The app launches Suture's MCP server with `npx -y @g4stein/suture-mcp@0.1.0` (`app.json` → `mcpServers.suture`, and
+the `suture-sample` server in each agent file). The package is
+[published on npm](https://www.npmjs.com/package/@g4stein/suture-mcp) (MIT) from
+[`g4stein/SUTURE` `packages/mcp`](https://github.com/g4stein/SUTURE/tree/main/packages/mcp). `npx` downloads it on the
+first run; nothing else needs installing. CI runs the end-to-end proof against the published package on every push.
 
-> **Status on 2026-11-21: `@suture/mcp` is not published on npm yet** (the registry answers 404). Until it is, use the
-> local build below. Every check in this repository's CI runs against a pinned local build of `g4stein/SUTURE`.
-
-**Publishing it** (from a `g4stein/SUTURE` checkout; `core` and `runtime` are already bundled into the single
-`dist/suture-mcp.mjs`, and DuckDB-WASM, Pyodide, the MCP SDK and zod stay runtime `dependencies`):
-
-1. In `packages/mcp/package.json`, remove `"private": true` and add `"license": "MIT"`, `"files": ["dist"]` and a
-   `repository` entry.
-2. `pnpm install && pnpm --filter "@suture/mcp..." build`
-3. `cd packages/mcp && pnpm publish --access public` (pnpm rewrites the `workspace:*` dev dependencies).
-4. If the `@suture` scope is not yours on npm, publish under a scope you own, for example `@g4stein/suture-mcp`, and run
-   `node tooling/scripts/use-local-suture.mjs --npm @g4stein/suture-mcp@0.1.0` in your clone of this repo before
-   installing it.
-
-**Zero-npm fallback** (two local clones, nothing fetched from npm):
+**Optional offline fallback** (no npm fetch; two local clones):
 
 ```bash
 git clone https://github.com/g4stein/SUTURE.git
-(cd SUTURE && pnpm install && pnpm --filter "@suture/mcp..." build)   # builds packages/mcp/dist/suture-mcp.mjs
+(cd SUTURE && pnpm install && pnpm --filter "@g4stein/suture-mcp..." build)   # builds packages/mcp/dist/suture-mcp.mjs
 
 git clone https://github.com/g4stein/suture-crew.git
 node suture-crew/tooling/scripts/use-local-suture.mjs --local "$PWD/SUTURE"
@@ -60,10 +51,14 @@ kirocrew app install ./suture-crew
 kirocrew app enable suture-crew
 ```
 
+The same script switches back, or to another exact version:
+`node tooling/scripts/use-local-suture.mjs --npm @g4stein/suture-mcp@0.1.0`.
+
 To check the engine end to end without Kiro Crew:
 
 ```bash
-SUTURE_MCP_ENTRY="$PWD/SUTURE/packages/mcp/dist/suture-mcp.mjs" node suture-crew/tooling/scripts/prove-sample.mjs
+node suture-crew/tooling/scripts/prove-sample.mjs                     # uses npx -y @g4stein/suture-mcp@0.1.0
+SUTURE_MCP_ENTRY="$PWD/SUTURE/packages/mcp/dist/suture-mcp.mjs" node suture-crew/tooling/scripts/prove-sample.mjs   # local build
 ```
 
 ## First audit in one minute
@@ -119,8 +114,8 @@ are auto-approved.
  │ Cron nightly-model-audit (paused) ─► invariant-adversary                 │
  └──────────────────────────────────────────────────────┼───────────────────┘
           kiro-cli sessions: 3 agents + 2 skills        │
-   @suture-crew:suture ── npx @suture/mcp@0.1.0  (root: SUTURE_WORKSPACE | cwd)
-   @suture-sample ────── npx @suture/mcp@0.1.0 --root {APP_ROOT}/samples
+   @suture-crew:suture ── npx @g4stein/suture-mcp@0.1.0  (root: SUTURE_WORKSPACE | cwd)
+   @suture-sample ────── npx @g4stein/suture-mcp@0.1.0 --root {APP_ROOT}/samples
    @suture-crew:ledger ─ python3 backend/ledger_mcp.py ──┘  suture_crew_record_audit
                                                       │
                      Open in Suture X-Ray ──► https://suture-nu.vercel.app/#replay=v1.…
@@ -143,7 +138,7 @@ are auto-approved.
 | `api: ["/api/crons", "/api/apps/suture-crew"]` | Read, pause, resume and run the app's own cron; read the ledger |
 | `cron: true` | Required by Kiro Crew for any app that declares `crons` |
 | `storage: false` | The ledger writes files in the app's data folder; it does not use the key-value store |
-| `network: false` | The app's code makes no requests. `npx` downloads `@suture/mcp` once, and Pyodide may fetch NumPy for trusted `=PY()` workbooks; both belong to the engine |
+| `network: false` | The app's code makes no requests. `npx` downloads `@g4stein/suture-mcp` once, and Pyodide may fetch NumPy for trusted `=PY()` workbooks; both belong to the engine |
 
 ## Repository layout
 
@@ -172,8 +167,9 @@ pnpm run verify          # typecheck, UI build, Vitest, pytest, license audits, 
 - fails if rebuilding the UI changes the committed `ui/dist/index.mjs`;
 - installs the app with Kiro Crew's own `install_app` and `register_app` at a pinned KiroCrew commit, then checks the
   registered agents, MCP servers, skills, paused cron, and hook routes (`tooling/crew-check/`);
-- builds Suture's MCP server from a pinned `g4stein/SUTURE` commit and runs `tooling/scripts/prove-sample.mjs`, which
-  audits the sample, verifies the fix with zero regressions, and records all three reports through the ledger.
+- runs `tooling/scripts/prove-sample.mjs` against the published `@g4stein/suture-mcp@0.1.0` (through `npx`, as the app
+  does) and against a local build from a pinned `g4stein/SUTURE` commit (the offline fallback). Each run audits the
+  sample, verifies the fix with zero regressions, and records all three reports through the ledger.
 
 Dependencies pass a license audit (no GPL, LGPL or AGPL, nothing unlicensed), and a digest-based scan keeps
 third-party product names out of every file.

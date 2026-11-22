@@ -4,7 +4,7 @@
 // record all three reports through backend/ledger_mcp.py.
 //
 //   SUTURE_MCP_ENTRY=/path/to/SUTURE/packages/mcp/dist/suture-mcp.mjs node tooling/scripts/prove-sample.mjs
-//   node tooling/scripts/prove-sample.mjs            # uses npx -y @suture/mcp@0.1.0 (once it is published)
+//   node tooling/scripts/prove-sample.mjs            # uses npx -y @g4stein/suture-mcp@0.1.0 (published on npm)
 //   ... --write-fixtures                              # also saves the real reports to tooling/fixtures/
 import { mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -14,7 +14,7 @@ import { startMcp } from './mcp-client.mjs';
 
 const repo = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const SAMPLE = 'wholesale-quote.suture.json';
-export const SUTURE_NPM_SPEC = '@suture/mcp@0.1.0';
+export const SUTURE_NPM_SPEC = '@g4stein/suture-mcp@0.1.0';
 
 /** The non-masking fix: stack the discounts multiplicatively in the upstream SQL, so net price stays positive. */
 export const SAMPLE_FIX = {

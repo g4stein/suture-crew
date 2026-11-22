@@ -5,7 +5,7 @@
 //   node tooling/scripts/use-local-suture.mjs --npm @your-scope/suture-mcp@0.1.0
 //
 // Rewrites app.json mcpServers.suture and every agent's suture-sample server; nothing else changes. Run it on your own
-// clone, never on the committed main branch (CI checks that the committed files pin @suture/mcp@0.1.0).
+// clone, never on the committed main branch (CI checks that the committed files pin @g4stein/suture-mcp@0.1.0).
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, isAbsolute, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';

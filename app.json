@@ -7,7 +7,14 @@
   "license": "MIT",
   "minKiroCrewVersion": "0.13.0",
   "iconPath": "assets/icon.png",
-  "tags": ["spreadsheets", "financial-models", "audit", "property-based-testing", "mcp", "suture"],
+  "tags": [
+    "spreadsheets",
+    "financial-models",
+    "audit",
+    "property-based-testing",
+    "mcp",
+    "suture"
+  ],
   "highlights": [
     "Schema Archaeologist maps every sheet and the SQL → Python → formula lineage of your .suture.json models",
     "Invariant Adversary runs Suture's Exorcist fuzzer and turns each shrunk counterexample into a Suture X-Ray replay link",
@@ -33,13 +40,23 @@
   "mcpServers": {
     "suture": {
       "command": "npx",
-      "args": ["-y", "@suture/mcp@0.1.0"],
-      "autoApprove": ["suture_list_workbooks", "suture_inspect_lineage"]
+      "args": [
+        "-y",
+        "@g4stein/suture-mcp@0.1.0"
+      ],
+      "autoApprove": [
+        "suture_list_workbooks",
+        "suture_inspect_lineage"
+      ]
     },
     "ledger": {
       "command": "python3",
-      "args": ["backend/ledger_mcp.py"],
-      "autoApprove": ["suture_crew_record_audit"]
+      "args": [
+        "backend/ledger_mcp.py"
+      ],
+      "autoApprove": [
+        "suture_crew_record_audit"
+      ]
     }
   },
   "crons": [
@@ -67,15 +84,25 @@
     ]
   },
   "permissions": {
-    "api": ["/api/crons", "/api/apps/suture-crew"],
+    "api": [
+      "/api/crons",
+      "/api/apps/suture-crew"
+    ],
     "cron": true,
     "storage": false,
     "network": false
   },
   "dependencies": {
-    "commands": ["node", "npx", "python3"]
+    "commands": [
+      "node",
+      "npx",
+      "python3"
+    ]
   },
   "platform": {
-    "os": ["macos", "linux"]
+    "os": [
+      "macos",
+      "linux"
+    ]
   }
 }

@@ -23,4 +23,4 @@ export function strings(v: unknown, what: string): string[] {
 
 /** The four tools g4stein/SUTURE packages/mcp/src/tools.ts registers (proved live by tooling/scripts/prove-sample.mjs). */
 export const SUTURE_TOOLS = ['suture_list_workbooks', 'suture_inspect_lineage', 'suture_run_audit', 'suture_verify_patch'] as const;
-export const SUTURE_NPM = '@suture/mcp@0.1.0';
+export const SUTURE_NPM = '@g4stein/suture-mcp@0.1.0';

@@ -26,7 +26,7 @@ kiro.dev/docs/crew/apps. Where the website and the source disagreed, the source 
 
 The Suture side (`g4stein/SUTURE` `5eccda0`): `packages/mcp` registers the four tools; the server root is `--root`,
 then `SUTURE_WORKSPACE`, then the current directory; `AuditReport`, `VerifyPatchReport` and `suture.workbooks` shapes
-come from `packages/runtime/src/headless`. `@suture/mcp` is not yet on npm (registry answered 404 on 2026-11-21).
+come from `packages/runtime/src/headless`. The engine is published on npm as `@g4stein/suture-mcp@0.1.0` (MIT); it was unpublished while spec 01 was built, so CI first proved it against a local build.
 
 ## 2. Architecture
 
@@ -44,8 +44,8 @@ come from `packages/runtime/src/headless`. `@suture/mcp` is not yet on npm (regi
  │ Cron nightly-model-audit (paused) ─► invariant-adversary                 │
  └──────────────────────────────────────────────────────┼───────────────────┘
           kiro-cli sessions: 3 agents + 2 skills        │
-   @suture-crew:suture ── npx @suture/mcp@0.1.0  (root: SUTURE_WORKSPACE | cwd)
-   @suture-sample ────── npx @suture/mcp@0.1.0 --root {APP_ROOT}/samples
+   @suture-crew:suture ── npx @g4stein/suture-mcp@0.1.0  (root: SUTURE_WORKSPACE | cwd)
+   @suture-sample ────── npx @g4stein/suture-mcp@0.1.0 --root {APP_ROOT}/samples
    @suture-crew:ledger ─ python3 backend/ledger_mcp.py ──┘  suture_crew_record_audit
                                                       │
                      Open in Suture X-Ray ──► https://suture-nu.vercel.app/#replay=v1.…
@@ -111,7 +111,7 @@ summing to exactly 1.0 (price 0, a division cliff at `Quote!B4`). The non-maskin
 | `api: /api/apps/suture-crew` | Read the ledger routes |
 | `cron: true` | Required by Crew because `crons` is non-empty |
 | `storage: false` | The ledger uses `ctx.data_dir`, not `ctx.storage` |
-| `network: false` | The app's code makes no network requests. `npx` downloads `@suture/mcp` once, and Pyodide may fetch NumPy for trusted `=PY()` workbooks; both are the engine's, launched by kiro-cli |
+| `network: false` | The app's code makes no network requests. `npx` downloads `@g4stein/suture-mcp` once, and Pyodide may fetch NumPy for trusted `=PY()` workbooks; both are the engine's, launched by kiro-cli |
 
 ## 4. Repository layout
 
