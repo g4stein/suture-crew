@@ -35,7 +35,7 @@ and shows the results in a dashboard page. These rules apply to every change in 
 
 ## 3. Engine boundaries
 
-- The Suture engine is `@suture/mcp@0.1.0`, launched with `npx`. Pin exact versions; never `latest`.
+- The Suture engine is `@g4stein/suture-mcp@0.1.0` (published on npm from `g4stein/SUTURE` `packages/mcp`), launched with `npx`. Pin exact versions; never `latest`.
 - Use only the four Suture tools (`suture_list_workbooks`, `suture_inspect_lineage`, `suture_run_audit`,
   `suture_verify_patch`) and the ledger's `suture_crew_record_audit`. Never invent tool names, arguments or result
   fields; copy shapes from Suture's `packages/runtime/src/headless` types.

@@ -20,7 +20,7 @@ the installed copy SHALL contain every runtime file (the UI bundle included) wit
 
 ## Req 2 — Suture engine wiring
 
-2.1 The manifest SHALL declare the Suture MCP server as `npx -y @suture/mcp@0.1.0` (an exact version).
+2.1 The manifest SHALL declare the Suture MCP server as `npx -y @g4stein/suture-mcp@0.1.0` (an exact version).
 2.2 The Suture server SHALL audit the workspace named by `SUTURE_WORKSPACE` in the gateway's environment, or else the
 folder the server starts in.
 2.3 WHERE no workspace is configured, each agent SHALL be able to reach a second Suture server rooted at the app's

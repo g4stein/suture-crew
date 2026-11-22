@@ -25,7 +25,12 @@
   "mcpServers": {
     "suture-sample": {
       "command": "npx",
-      "args": ["-y", "@suture/mcp@0.1.0", "--root", "{APP_ROOT}/samples"]
+      "args": [
+        "-y",
+        "@g4stein/suture-mcp@0.1.0",
+        "--root",
+        "{APP_ROOT}/samples"
+      ]
     }
   }
 }
