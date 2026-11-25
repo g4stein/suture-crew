@@ -4,7 +4,7 @@
  * through the permission-scoped `useAppApi` client. Agents are dispatched with `useChatLauncher().openChat`.
  */
 import { useAppApi, useChatLauncher, useNotify } from '@kirocrew/app-sdk';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Dashboard } from './components.tsx';
 import {
   APP_API,
@@ -13,8 +13,10 @@ import {
   findCron,
   isLedgerRecord,
   isSummaryList,
+  mergeRecords,
   parseReport,
   ReportError,
+  unresolvedIds,
   type AgentName,
   type AuditReport,
   type CronJob,
@@ -84,18 +86,18 @@ export default function SutureCrewPage() {
   const rows = useMemo(() => buildQueue(summaries, inventories), [summaries, inventories]);
   const selected: QueueRow | null = rows.find((r) => r.key === selectedKey) ?? rows[0] ?? null;
 
+  // Ids whose record failed validation. Records never change once written, so they are not fetched again.
+  const invalidIds = useRef<Set<string>>(new Set());
+
   // Fetch the full audit and patch records for the selected workbook.
   useEffect(() => {
-    const ids = [selected?.lastAudit?.id, selected?.lastPatch?.id].filter((id): id is string => id !== undefined && records[id] === undefined);
+    const ids = [selected?.lastAudit?.id, selected?.lastPatch?.id].filter((id): id is string => id !== undefined && records[id] === undefined && !invalidIds.current.has(id));
     if (ids.length === 0) return;
     let live = true;
     void Promise.all(ids.map(fetchRecord)).then((got) => {
       if (!live) return;
-      setRecords((prev) => {
-        const next: Record<string, LedgerRecord> = { ...prev };
-        for (const r of got) if (r !== null) next[r.id] = r;
-        return next;
-      });
+      for (const id of unresolvedIds(ids, got)) invalidIds.current.add(id);
+      setRecords((prev) => mergeRecords(prev, got));
     }).catch((e: unknown) => { if (live) setLoadError(`Could not load a report: ${message(e)}`); });
     return () => { live = false; };
   }, [selected?.lastAudit?.id, selected?.lastPatch?.id, records, fetchRecord]);

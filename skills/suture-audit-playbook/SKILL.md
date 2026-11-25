@@ -88,9 +88,11 @@ still computes the wrong number.
 SELECT {{Inputs!B2}}::DOUBLE * (1 - ({{Inputs!B3}}::DOUBLE + {{Inputs!B4}}::DOUBLE + {{Inputs!B5}}::DOUBLE)) AS net_price
 ```
 
-The three discounts are added, so volume 0.4 + promo 0.4 + loyalty 0.2 takes the price to exactly 0. The Exorcist
-finds this, violating `net-price-positive` on `Quote!B2`, and downstream `Quote!B4 = (B2-B3)/B2` sits on a division
-cliff. The non-masking fix compounds the discounts in the SQL:
+The SQL adds the three discounts instead of compounding them, so once they sum to 1 or more the net price is 0 or
+negative. The Exorcist finds this, violating `net-price-positive` on `Quote!B2`, and downstream
+`Quote!B4 = (B2-B3)/B2` sits on a division cliff. One shrunk counterexample is volume 0.4 + promo 0.4 + loyalty 0.2
+(a price of exactly 0); the exact shrunk values vary with the random seed, so report the ones the audit returned. The
+non-masking fix compounds the discounts in the SQL:
 
 ```text
 Pricing!A1  =SQL("SELECT {{Inputs!B2}}::DOUBLE * (1 - {{Inputs!B3}}::DOUBLE) * (1 - {{Inputs!B4}}::DOUBLE) * (1 - {{Inputs!B5}}::DOUBLE) AS net_price")

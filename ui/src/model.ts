@@ -197,6 +197,23 @@ export function isLedgerRecord(v: unknown): v is LedgerRecord {
   }
 }
 
+/**
+ * Adds fetched ledger records to `prev`. Returns `prev` itself when nothing new arrived, so React keeps the same state
+ * and an effect that depends on the map does not run again.
+ */
+export function mergeRecords(prev: Readonly<Record<string, LedgerRecord>>, got: ReadonlyArray<LedgerRecord | null>): Readonly<Record<string, LedgerRecord>> {
+  const fresh = got.filter((r): r is LedgerRecord => r !== null && prev[r.id] === undefined);
+  if (fresh.length === 0) return prev;
+  const next: Record<string, LedgerRecord> = { ...prev };
+  for (const r of fresh) next[r.id] = r;
+  return next;
+}
+
+/** The requested ids whose fetch did not return a valid record for that id (`got[i]` answers `requested[i]`). */
+export function unresolvedIds(requested: ReadonlyArray<string>, got: ReadonlyArray<LedgerRecord | null>): string[] {
+  return requested.filter((id, i) => got[i]?.id !== id);
+}
+
 export function findCron(v: unknown): CronJob | null {
   if (!isObj(v) || !isArr(v['jobs'])) return null;
   const job = v['jobs'].find((j) => isObj(j) && j['name'] === CRON_NAME);

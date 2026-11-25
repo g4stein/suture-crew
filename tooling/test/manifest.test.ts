@@ -59,13 +59,15 @@ describe('resource paths', () => {
     expect(exists('ui', entry)).toBe(true);
   });
 
-  it('declares one routed page with a label and a Lucide icon', () => {
+  it('declares one routed page with a label, and leaves its sidebar icon to iconPath', () => {
     const pages = ui['pages'];
     expect(Array.isArray(pages) && pages.length === 1).toBe(true);
     const page = obj(Array.isArray(pages) ? pages[0] : null, 'page');
     expect(page['route']).toBe('/apps/suture-crew');
     expect(page['label']).toBe('Suture Crew');
-    expect(page['icon']).toBe('ShieldCheck');
+    // A Lucide `icon` name renders only for built-in apps, and the sidebar draws an installed app's top-level iconPath
+    // before any `ui.pages[].iconUrl` (manifest reference, ui.pages[].icon), so the page declares neither.
+    expect(Object.keys(page).sort()).toEqual(['label', 'route']);
   });
 
   it('backend.hooks.routes is module.path:callable and points at a real file and function', () => {

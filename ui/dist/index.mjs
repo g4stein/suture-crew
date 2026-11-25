@@ -1,6 +1,6 @@
 import { jsxs, jsx, Fragment } from "react/jsx-runtime";
 import { useAppApi, useNotify, useChatLauncher } from "@kirocrew/app-sdk";
-import { useState, useCallback, useEffect, useMemo } from "react";
+import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 const APP_API = "/api/apps/suture-crew";
 const CRON_NAME = "suture-crew/nightly-model-audit";
 const XRAY_BASE = "https://suture-nu.vercel.app/#";
@@ -57,6 +57,16 @@ function isLedgerRecord(v) {
   } catch {
     return false;
   }
+}
+function mergeRecords(prev, got) {
+  const fresh = got.filter((r) => r !== null && prev[r.id] === void 0);
+  if (fresh.length === 0) return prev;
+  const next = { ...prev };
+  for (const r of fresh) next[r.id] = r;
+  return next;
+}
+function unresolvedIds(requested, got) {
+  return requested.filter((id, i) => got[i]?.id !== id);
 }
 function findCron(v) {
   if (!isObj(v) || !isArr(v["jobs"])) return null;
@@ -229,7 +239,7 @@ function downloadArtifact(audit) {
   a.href = url;
   a.download = `${audit.workbook.ref.replace(/[^A-Za-z0-9._-]+/g, "_")}.replay.json`;
   a.click();
-  URL.revokeObjectURL(url);
+  setTimeout(() => URL.revokeObjectURL(url), 0);
 }
 function TriagePane({ audit, recordedAt }) {
   if (audit === null) {
@@ -295,9 +305,9 @@ function TriagePane({ audit, recordedAt }) {
         audit.replay !== null && /* @__PURE__ */ jsx("button", { type: "button", className: "sc-btn", onClick: () => downloadArtifact(audit), children: "Download replay JSON" })
       ] }),
       isFile && /* @__PURE__ */ jsxs("p", { className: "sc-muted", children: [
-        "Suture asks you to import ",
+        "Suture replays this link directly when it already has a workbook with this hash (the bundled sample is built in). Otherwise it asks you to import ",
         audit.workbook.ref,
-        " before it replays the link (matched by workbook hash)."
+        " first."
       ] })
     ] }),
     /* @__PURE__ */ jsxs("details", { children: [
@@ -558,17 +568,15 @@ function SutureCrewPage() {
   }, [load]);
   const rows = useMemo(() => buildQueue(summaries, inventories), [summaries, inventories]);
   const selected = rows.find((r) => r.key === selectedKey) ?? rows[0] ?? null;
+  const invalidIds = useRef(/* @__PURE__ */ new Set());
   useEffect(() => {
-    const ids = [selected?.lastAudit?.id, selected?.lastPatch?.id].filter((id) => id !== void 0 && records[id] === void 0);
+    const ids = [selected?.lastAudit?.id, selected?.lastPatch?.id].filter((id) => id !== void 0 && records[id] === void 0 && !invalidIds.current.has(id));
     if (ids.length === 0) return;
     let live = true;
     void Promise.all(ids.map(fetchRecord)).then((got) => {
       if (!live) return;
-      setRecords((prev) => {
-        const next = { ...prev };
-        for (const r of got) if (r !== null) next[r.id] = r;
-        return next;
-      });
+      for (const id of unresolvedIds(ids, got)) invalidIds.current.add(id);
+      setRecords((prev) => mergeRecords(prev, got));
     }).catch((e) => {
       if (live) setLoadError(`Could not load a report: ${message(e)}`);
     });

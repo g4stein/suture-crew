@@ -139,7 +139,8 @@ function downloadArtifact(audit: AuditReport): void {
   a.href = url;
   a.download = `${audit.workbook.ref.replace(/[^A-Za-z0-9._-]+/g, '_')}.replay.json`;
   a.click();
-  URL.revokeObjectURL(url);
+  // Revoke after the click's download has started; revoking synchronously can cancel it in some browsers.
+  setTimeout(() => URL.revokeObjectURL(url), 0);
 }
 
 export function TriagePane({ audit, recordedAt }: { readonly audit: AuditReport | null; readonly recordedAt: string | null }) {
@@ -189,7 +190,7 @@ export function TriagePane({ audit, recordedAt }: { readonly audit: AuditReport 
               <button type="button" className="sc-btn" onClick={() => downloadArtifact(audit)}>Download replay JSON</button>
             )}
           </div>
-          {isFile && <p className="sc-muted">Suture asks you to import {audit.workbook.ref} before it replays the link (matched by workbook hash).</p>}
+          {isFile && <p className="sc-muted">Suture replays this link directly when it already has a workbook with this hash (the bundled sample is built in). Otherwise it asks you to import {audit.workbook.ref} first.</p>}
         </>
       )}
       <details>
