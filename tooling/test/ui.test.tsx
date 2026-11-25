@@ -11,10 +11,13 @@ import {
   isLedgerRecord,
   isSummaryList,
   lineageChain,
+  mergeRecords,
   parseReport,
   replayUrl,
   ReportError,
+  unresolvedIds,
   type AuditReport,
+  type LedgerRecord,
   type PatchReport,
   type Report,
   type Summary,
@@ -93,6 +96,20 @@ describe('model', () => {
     expect(isLedgerRecord({ id: auditSummary.id, kind: 'audit', report: { format: 'x' } })).toBe(false);
   });
 
+  it('merges fetched records without a new state object when nothing new arrived, and names the ids that failed', () => {
+    const rec: LedgerRecord = { id: auditSummary.id, kind: 'audit', recordedAt: auditSummary.recordedAt, source: 'sample', agent: 'invariant-adversary', replayUrl: auditSummary.replayUrl, report: audit };
+    const empty: Readonly<Record<string, LedgerRecord>> = {};
+    // A record that failed validation comes back as null: the same object is returned, so the fetch effect stops.
+    expect(mergeRecords(empty, [null])).toBe(empty);
+    const once = mergeRecords(empty, [rec, null]);
+    expect(once).not.toBe(empty);
+    expect(Object.keys(once)).toEqual([rec.id]);
+    expect(mergeRecords(once, [rec])).toBe(once);
+    expect(unresolvedIds([rec.id, patchSummary.id], [rec, null])).toEqual([patchSummary.id]);
+    expect(unresolvedIds([patchSummary.id], [rec])).toEqual([patchSummary.id]);
+    expect(unresolvedIds([rec.id], [rec])).toEqual([]);
+  });
+
   it('writes a dispatch message naming the workbook and server', () => {
     const [row] = buildQueue([auditSummary], []);
     expect(dispatchMessage('formula-surgeon', row ?? null)).toContain('wholesale-quote.suture.json on the @suture-sample server');
@@ -111,7 +128,8 @@ describe('components', () => {
     expect(html).toContain(`href="https://suture-nu.vercel.app/#${audit.replay?.fragment ?? ''}"`);
     expect(html).toContain('Open in Suture X-Ray');
     expect(html).toContain('rel="noopener noreferrer"');
-    expect(html).toContain('import wholesale-quote.suture.json');
+    expect(html).toContain('replays this link directly when it already has a workbook with this hash');
+    expect(html).toContain('import wholesale-quote.suture.json first');
   });
 
   it('triage pane explains a missing link', () => {
