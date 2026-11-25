@@ -21,7 +21,7 @@
     "Formula Surgeon proposes the upstream, non-masking fix and proves it with suture_verify_patch before suggesting a diff",
     "A paused nightly-model-audit schedule you switch on once your workspace is set",
     "A bundled sample workbook with a real discount-stacking bug, so the first audit works right after install",
-    "Reports land in a local ledger the Suture Crew dashboard reads; nothing leaves your machine"
+    "Reports land in a local ledger the Suture Crew dashboard reads; the ledger makes no network calls"
   ],
   "useCases": [
     "Before a board meeting, ask Invariant Adversary to audit the runway model and open the counterexample in Suture X-Ray",
@@ -78,8 +78,7 @@
     "pages": [
       {
         "route": "/apps/suture-crew",
-        "label": "Suture Crew",
-        "icon": "ShieldCheck"
+        "label": "Suture Crew"
       }
     ]
   },
