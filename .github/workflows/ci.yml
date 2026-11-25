@@ -9,8 +9,7 @@ permissions:
   contents: read
 
 env:
-  # Pinned upstreams the integration jobs verify against.
-  KIROCREW_SHA: 44b184c9f9174d93b90ce8453785d13b2fa00b30
+  # Pinned upstreams the integration jobs verify against. The KiroCrew pins are in the crew-integration matrix.
   SUTURE_SHA: 2aa3cc78d346aa567a60487100f661fa70f070b3
 
 jobs:
@@ -49,8 +48,18 @@ jobs:
           git ls-files --error-unmatch ../.kiro/steering/suture-crew-architecture.md ../.kiro/specs/01-suture-crew-app/tasks.md ../.kiro/hooks/crew-app-guard.json
 
   crew-integration:
-    name: Install with Kiro Crew's own installer and registrar
+    name: Install with Kiro Crew's own installer and registrar (${{ matrix.kirocrew.label }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        kirocrew:
+          # A later KiroCrew main commit (2026-11-21).
+          - label: main 44b184c
+            sha: 44b184c9f9174d93b90ce8453785d13b2fa00b30
+          # Tag v0.13.0, the app's declared minKiroCrewVersion.
+          - label: v0.13.0
+            sha: b8a44bd879d692b8dcc04ae2601f90c4abc7df06
     steps:
       # Side-by-side checkouts, so the app copy Crew makes does not include the gateway source.
       - uses: actions/checkout@v4
@@ -59,7 +68,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: kirodotdev/KiroCrew
-          ref: ${{ env.KIROCREW_SHA }}
+          ref: ${{ matrix.kirocrew.sha }}
           path: KiroCrew
       - uses: actions/setup-python@v5
         with:

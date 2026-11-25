@@ -180,8 +180,9 @@ pnpm run verify          # typecheck, UI build, Vitest, pytest, license audits, 
 `pytest` needs `pip install -r tooling/requirements-dev.txt`. CI (`.github/workflows/ci.yml`) also:
 
 - fails if rebuilding the UI changes the committed `ui/dist/index.mjs`;
-- installs the app with Kiro Crew's own `install_app` and `register_app` at a pinned KiroCrew commit, then checks the
-  registered agents, MCP servers, skills, paused cron, and hook routes (`tooling/crew-check/`);
+- installs the app with Kiro Crew's own `install_app` and `register_app` at two pinned KiroCrew commits (the `v0.13.0`
+  tag, the declared minimum, and a later main commit), then checks the registered agents, MCP servers, skills, paused
+  cron, and hook routes (`tooling/crew-check/`);
 - runs `tooling/scripts/prove-sample.mjs` against the published `@g4stein/suture-mcp@0.1.0` (through `npx`, as the app
   does) and against a local build from a pinned `g4stein/SUTURE` commit (the offline fallback). Each run audits the
   sample, verifies the fix with zero regressions, and records all three reports through the ledger.
