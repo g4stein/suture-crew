@@ -60,6 +60,9 @@ An error that appears at the asserted cell usually started upstream. Report `ori
   artifact (`replay.artifact`, format `suture.replay`) can be downloaded from the Suture Crew dashboard and imported in
   Suture with **Download / Import Replay JSON**.
 - For `flagship:1` and `flagship:2`, the link opens the workbook and replays the counterexample directly.
-- For a `.suture.json` file, Suture matches the artifact's `workbookHash`. If the open workbook differs, Suture asks the
-  user to import the same file first, then replays it. Tell the user this before they click.
+- For a `.suture.json` file, Suture matches the artifact's `workbookHash` against the workbooks it already has. The
+  bundled `wholesale-quote.suture.json` is built into Suture's live app (**Wholesale Quote (Crew sample)** in the
+  workbook picker), so its link opens and replays directly. For the user's own workspace models, Suture asks the user to
+  import the same file first when it has no workbook with that hash yet, then replays it. Tell the user this before
+  they click.
 - The link contains the counterexample's input values. Treat it like the model itself when sharing.

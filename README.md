@@ -14,7 +14,9 @@ failure to a minimal counterexample. Suture Crew runs that same engine unattende
   counterexample into a one-click **Suture X-Ray** link (`https://suture-nu.vercel.app/#replay=v1.…`).
 - **Formula Surgeon** fixes the upstream cause (never `IFERROR` over the symptom) and recommends a diff only after
   `suture_verify_patch` returns `counterexampleFixed: true`, `freshAuditPassed: true` and `regressions: []`.
-- **nightly-model-audit** audits the workspace every night once you resume it. It ships paused.
+- **nightly-model-audit** runs every night once you resume it. It ships paused. With no workspace models it audits the
+  bundled sample unattended; audits of your workspace `.suture.json` files ask for your approval first (see
+  [Point it at your workspace](#point-it-at-your-workspace)).
 - A **dashboard page** shows the monitored-workbook queue, the counterexample triage pane, the patch verification
   diff, cron controls, and one dispatch button per agent.
 
@@ -22,12 +24,18 @@ failure to a minimal counterexample. Suture Crew runs that same engine unattende
 
 ```bash
 kirocrew app install https://github.com/g4stein/suture-crew.git --ref main
-kirocrew app enable suture-crew
 ```
 
-Installing from a git URL needs Kiro Crew 0.13.0 or later. The app installs disabled, as every app does; the enable step
-(or **Enable** in Apps → Library) shows the trust prompt. Requirements on the gateway host: `node` and `npx` (Node 22+)
-and `python3`.
+Installing from a git URL needs Kiro Crew 0.13.0 or later. The app installs disabled, as every app does, and Kiro Crew
+refuses to enable a third-party app until you trust it. Then either:
+
+- open the dashboard's App Store, find Suture Crew on the **Library** tab and press **Enable**. It asks you to trust
+  this app and enables it; or
+- turn on **Trust every third-party app** in **Settings → Security → Third-party apps**, then run
+  `kirocrew app enable suture-crew`. The CLI shows no trust prompt, so it refuses an app that is not trusted yet.
+  That switch trusts every third-party app on the gateway, not only this one.
+
+Requirements on the gateway host: `node` and `npx` (Node 22+) and `python3`.
 
 ### The Suture engine: `@g4stein/suture-mcp@0.1.0`
 
@@ -48,7 +56,7 @@ node suture-crew/tooling/scripts/use-local-suture.mjs --local "$PWD/SUTURE"
 # app.json and the agents now launch: node <SUTURE>/packages/mcp/dist/suture-mcp.mjs
 
 kirocrew app install ./suture-crew
-kirocrew app enable suture-crew
+# then trust and enable it as in Install above
 ```
 
 The same script switches back, or to another exact version:
@@ -69,10 +77,13 @@ installed app's `samples/` folder.
 
 1. Open **Suture Crew** in the dashboard sidebar and press **Invariant Adversary**, or ask in chat:
    *"Audit the bundled sample and give me the X-Ray link."*
-2. The Exorcist finds `net-price-positive` violated: volume 0.4 + promo 0.4 + loyalty 0.2 prices the quote at 0, and the
-   margin cell divides by it. The triage pane shows `IN → SQL → FX`, the shrunk inputs, and **Open in Suture X-Ray**.
-   Suture asks you to import the same `.suture.json` before it replays a link for a file workbook (it matches the
-   workbook hash).
+2. The Exorcist finds `net-price-positive` violated. The SQL adds the three discounts instead of compounding them, so
+   once they sum to 1 or more the net price is 0 or negative, and the margin cell divides by it. One shrunk
+   counterexample is volume 0.4 + promo 0.4 + loyalty 0.2; the exact values vary with the random seed. The triage pane
+   shows `IN → SQL → FX`, the shrunk inputs, and **Open in Suture X-Ray**. Suture's live app has this sample built in
+   (**Wholesale Quote (Crew sample)** in its workbook picker), so the link opens and replays directly. Suture matches
+   the workbook hash and asks you to import the `.suture.json` first only when it has no workbook with that hash, as
+   with your own workspace files.
 3. Press **Formula Surgeon**. It compounds the discounts in `Pricing!A1` and proves it:
    `counterexampleFixed: true`, `freshAuditPassed: true`, `regressions: 0`, with `baseValueDiffs` showing the base price
    moving from 96 to 97.47.
@@ -96,7 +107,11 @@ files, the job audits the bundled sample instead. Disabling and re-enabling the 
 
 Audits of workspace files ask for approval, because `suture_run_audit` accepts `trustPython`, and trusted `=PY()` cells
 run Python that can reach the file system and network. Read-only tools, the ledger write and the bundled-sample server
-are auto-approved.
+are auto-approved, so the job's sample audit runs unattended. A scheduled run sends each workspace audit to your
+approval prompt (dashboard and Slack DM), and Kiro Crew denies a prompt nobody answers within a short window. For
+fully unattended workspace audits, approve the prompts as they arrive, or switch the job to auto-approval yourself
+with `kirocrew cron update <job-id> --approval-mode auto` (only you can; Kiro Crew refuses that setting from an app).
+A disable and re-enable of the app registers the job again with the default approval mode.
 
 ## Architecture
 
