@@ -6,7 +6,7 @@ import json
 import os
 import subprocess
 import sys
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Callable, Dict, List, Optional
 
@@ -147,6 +147,37 @@ def test_pruning_keeps_the_newest(audit_report: Dict[str, object], data_dir: Pat
         L.save_record(data_dir, rec)
         ids.append(rec["id"])
     assert [s["id"] for s in L.list_summaries(data_dir)] == list(reversed(ids))[:3]
+
+
+def test_records_from_the_same_second_list_newest_first(audit_report: Dict[str, object], patch_report: Dict[str, object],
+                                                         workbooks_report: Dict[str, object], data_dir: Path,
+                                                         monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(L, "_last_stamp_us", 0)
+    # Same `now` for all three, and kinds whose names sort the other way round, so only the stamp can order them.
+    ids = []
+    for report in (workbooks_report, audit_report, patch_report):
+        rec = L.build_record(report, "sample", None, None, NOW)
+        assert rec["recordedAt"] == "2026-11-21T12:00:00Z"
+        L.save_record(data_dir, rec)
+        ids.append(rec["id"])
+    assert [s["id"] for s in L.list_summaries(data_dir)] == list(reversed(ids))
+
+
+def test_ids_from_earlier_builds_still_load_and_sort_oldest_in_their_second(audit_report: Dict[str, object], data_dir: Path,
+                                                                           monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(L, "_last_stamp_us", 0)
+    legacy = L.build_record(audit_report, "sample", None, None, NOW)
+    legacy["id"] = "20261121T120000Z-audit-0123456789ab"
+    L.save_record(data_dir, legacy)
+    current = L.build_record(audit_report, "sample", None, None, NOW)
+    L.save_record(data_dir, current)
+    older = L.build_record(audit_report, "sample", None, None, NOW - timedelta(seconds=1))
+    assert L.is_record_id(legacy["id"]) and L.load_record(data_dir, legacy["id"]) == legacy
+    assert current["id"].startswith("20261121T120000000")
+    assert [s["id"] for s in L.list_summaries(data_dir)] == [current["id"], legacy["id"]]
+    # A clock that steps back still yields a later stamp in this process, so creation order holds.
+    L.save_record(data_dir, older)
+    assert L.list_summaries(data_dir)[0]["id"] == older["id"]
 
 
 def test_failed_write_leaves_no_temporary_file(audit_report: Dict[str, object], data_dir: Path, monkeypatch: pytest.MonkeyPatch) -> None:

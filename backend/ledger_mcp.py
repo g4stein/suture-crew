@@ -16,9 +16,9 @@ import os
 import re
 import secrets
 import sys
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from typing import Callable, Dict, Iterable, List, Optional, TextIO, Union
+from typing import Callable, Dict, Iterable, List, Optional, TextIO, Tuple, Union
 
 SERVER_NAME = "suture-crew-ledger"
 SERVER_VERSION = "1.0.0"
@@ -41,7 +41,8 @@ AGENTS = ("schema-archaeologist", "invariant-adversary", "formula-surgeon")
 SOURCES = ("workspace", "sample")
 KINDS = {"suture.workbooks": "workbooks", "suture.audit": "audit", "suture.verify-patch": "patch"}
 
-RECORD_ID_RE = re.compile(r"^[0-9]{8}T[0-9]{6}Z-(workbooks|audit|patch)-[0-9a-f]{12}$")
+#: ``<UTC date>T<time><microseconds>Z-<kind>-<12 hex>``. IDs from earlier builds have no microsecond digits and still load.
+RECORD_ID_RE = re.compile(r"^[0-9]{8}T[0-9]{6}(?:[0-9]{6})?Z-(workbooks|audit|patch)-[0-9a-f]{12}$")
 FRAGMENT_RE = re.compile(r"^replay=v1\.[A-Za-z0-9_-]+$")
 
 LATEST_PROTOCOL = "2025-11-25"
@@ -98,8 +99,29 @@ def record_path(data_dir: Path, record_id: str) -> Path:
     return path
 
 
+_EPOCH = datetime(1970, 1, 1, tzinfo=timezone.utc)
+#: The last ID stamp this process issued, in microseconds since the epoch.
+_last_stamp_us = 0
+
+
 def new_record_id(kind: str, now: datetime) -> str:
-    return f"{now.strftime('%Y%m%dT%H%M%S')}Z-{kind}-{secrets.token_hex(6)}"
+    """A new record ID stamped with ``now`` (timezone-aware) to the microsecond.
+
+    The stamp is at least one microsecond past the last one this process issued, so IDs created within the same
+    microsecond, or while the clock steps back, still sort in creation order.
+    """
+    global _last_stamp_us
+    stamp = max((now - _EPOCH) // timedelta(microseconds=1), _last_stamp_us + 1)
+    _last_stamp_us = stamp
+    at = _EPOCH + timedelta(microseconds=stamp)
+    return f"{at.strftime('%Y%m%dT%H%M%S')}{at.microsecond:06d}Z-{kind}-{secrets.token_hex(6)}"
+
+
+def _time_order(record_id: str) -> Tuple[str, int, str]:
+    """Sort key for a valid record ID: its UTC second, then its microseconds. An ID from an earlier build has whole
+    seconds only and sorts as the oldest of its second."""
+    sub = record_id[15:21]
+    return (record_id[:15], int(sub) if sub.isdigit() else -1, record_id)
 
 
 def _need(cond: bool, path: str, message: str) -> None:
@@ -255,8 +277,8 @@ def _record_files(data_dir: Path) -> List[Path]:
     if not root.is_dir():
         return []
     out = [p for p in root.iterdir() if p.suffix == ".json" and is_record_id(p.stem) and p.is_file() and not p.is_symlink()]
-    # IDs start with a UTC timestamp, so name order is time order; newest first.
-    return sorted(out, key=lambda p: p.name, reverse=True)
+    # IDs start with a UTC timestamp; newest first.
+    return sorted(out, key=lambda p: _time_order(p.stem), reverse=True)
 
 
 def save_record(data_dir: Path, record: Dict[str, Json]) -> Path:
