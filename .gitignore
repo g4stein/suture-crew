@@ -1,4 +1,4 @@
-# Dependencies and caches. Never list .kiro/ here: steering, specs and hooks are tracked on purpose.
+# Dependencies and caches. The Kiro folder (steering, specs, hooks) is always tracked.
 node_modules/
 __pycache__/
 *.pyc
